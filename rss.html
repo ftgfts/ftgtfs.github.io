@@ -1,704 +1,682 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>RSS News Feed</title>
-    <style>
-      :root {
-        --primary: #000;
-        --bg: #fff;
-        --border: #ddd;
-        --shadow: rgba(0, 0, 0, 0.1);
-        --success: #0a0;
-        --warning: #fa0;
-        --error: #f00;
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RSS UI</title>
+
+  <style>
+    :root {
+      --bg: #000000;
+      --card: #000000;
+      --border: #333333;
+      --text: #ffffff;
+      --muted: #888888;
+      --accent: #ffffff;
+      --hover: #111111;
+    }
+
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+    }
+
+    .header {
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--border);
+      font-weight: 600;
+      font-size: 1.2rem;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      background: var(--bg);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .back-btn {
+      background: none;
+      border: none;
+      color: var(--accent);
+      cursor: pointer;
+      font-size: 1rem;
+      padding: 0;
+      display: none;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .back-btn:hover {
+      text-decoration: underline;
+    }
+
+    .container {
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .feed {
+      border: 1px solid var(--border);
+      background: var(--card);
+      border-radius: 0;
+      overflow: hidden;
+    }
+
+    .feed-header {
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #000000;
+    }
+
+    .feed-name-link {
+      cursor: pointer;
+      font-weight: 600;
+      color: var(--text);
+      text-decoration: none;
+      font-size: 1.1rem;
+    }
+
+    .feed-name-link:hover {
+      color: var(--accent);
+    }
+
+    .feed-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      gap: 16px;
+      padding: 16px;
+    }
+
+    .skeleton {
+      height: 120px;
+      background: linear-gradient(90deg, #111 25%, #222 50%, #111 75%);
+      background-size: 200% 100%;
+      animation: shimmer 1.2s infinite;
+      border-radius: 0;
+    }
+
+    @keyframes shimmer {
+      0% {
+        background-position: 200% 0;
       }
 
-      * {
-        box-sizing: border-box;
+      100% {
+        background-position: -200% 0;
       }
+    }
 
-      html,
-      body {
-        height: 100%;
-        margin: 0;
-        background: var(--bg);
-        color: var(--primary);
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-        font-size: 14px;
+    .card {
+      border: 1px solid var(--border);
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      border-radius: 0;
+      cursor: pointer;
+      background: var(--card);
+      transition: background 0.2s, border-color 0.2s;
+      text-decoration: none;
+      color: inherit;
+    }
+
+    .card:hover {
+      background: var(--hover);
+      border-color: #555;
+    }
+
+    .card-content {
+      display: flex;
+      flex-direction: column;
+      flex: 1;
+      gap: 8px;
+      min-width: 0;
+    }
+
+    .card-image {
+      width: 100%;
+      height: 200px;
+      flex-shrink: 0;
+      background: #000;
+      border-radius: 0;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid var(--border);
+    }
+
+    .card-image img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+    }
+
+    .title {
+      font-size: 15px;
+      font-weight: 600;
+      line-height: 1.4;
+      margin: 0;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    .desc {
+      font-size: 13px;
+      color: var(--muted);
+      display: -webkit-box;
+      -webkit-line-clamp: 3;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      line-height: 1.4;
+    }
+
+    .card-btn {
+      margin-top: auto;
+      align-self: flex-start;
+      font-size: 12px;
+      color: var(--text);
+      background: rgba(255, 255, 255, 0.1);
+      padding: 4px 8px;
+      border-radius: 0;
+      font-weight: 500;
+    }
+
+    #post-view {
+      padding: 24px 20px;
+      max-width: 800px;
+      margin: 0 auto;
+    }
+
+    .post-title {
+      font-size: 2rem;
+      margin: 0 0 12px 0;
+      line-height: 1.3;
+    }
+
+    .post-meta {
+      color: var(--muted);
+      font-size: 0.95rem;
+      margin-bottom: 24px;
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .post-feed-badge {
+      background: #111;
+      padding: 4px 8px;
+      border-radius: 0;
+      border: 1px solid var(--border);
+    }
+
+    .post-image {
+      width: 100%;
+      max-height: 400px;
+      object-fit: contain;
+      margin-bottom: 24px;
+      background: #000;
+      border-radius: 0;
+      border: 1px solid var(--border);
+    }
+
+    .post-content {
+      line-height: 1.7;
+      font-size: 1.1rem;
+      color: #fff;
+      overflow-wrap: break-word;
+    }
+
+    .post-content img {
+      max-width: 100%;
+      height: auto;
+      border-radius: 0;
+      margin: 16px 0;
+    }
+
+    .post-content a {
+      color: var(--text);
+      text-decoration: underline;
+    }
+
+    .post-content p {
+      margin-bottom: 1.2em;
+    }
+
+    .post-content blockquote {
+      border-left: 4px solid var(--border);
+      margin: 0 0 1.2em 0;
+      padding-left: 16px;
+      color: var(--muted);
+      font-style: italic;
+    }
+
+    .post-content pre {
+      background: #111;
+      padding: 16px;
+      overflow-x: auto;
+      border: 1px solid var(--border);
+      margin-bottom: 1.2em;
+    }
+
+    .post-content code {
+      font-family: monospace;
+      background: #111;
+      padding: 2px 4px;
+      font-size: 0.9em;
+    }
+
+    .post-content pre code {
+      background: none;
+      padding: 0;
+    }
+
+    .post-content ul,
+    .post-content ol {
+      margin-bottom: 1.2em;
+      padding-left: 24px;
+    }
+
+    .post-link {
+      display: inline-block;
+      margin-top: 32px;
+      padding: 12px 20px;
+      background: var(--text);
+      color: #000;
+      text-decoration: none;
+      border-radius: 0;
+      font-weight: 600;
+      transition: opacity 0.2s;
+    }
+
+    .post-link:hover {
+      opacity: 0.9;
+    }
+
+    .status-badge {
+      font-size: 0.8rem;
+      padding: 2px 6px;
+      border-radius: 0;
+      background: rgba(255, 255, 255, 0.1);
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="header">
+    <button id="back-btn" class="back-btn" style="display: none;">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+        stroke-linecap="round" stroke-linejoin="round">
+        <path d="M19 12H5M12 19l-7-7 7-7" />
+      </svg>
+      Back
+    </button>
+    <span id="header-title">RSS Reader</span>
+  </div>
+
+  <div id="main" class="container"></div>
+  <div id="feed-view" class="container" style="display:none;"></div>
+  <div id="post-view" style="display:none;"></div>
+
+  <script>
+    const feeds = {
+      "YTS YIFY Featured Movies": "https://atlas.rssly.org/feed/0/720p/all/0/en",
+      "Hacker News": "https://news.ycombinator.com/rss",
+      "World News": "https://feeds.bbci.co.uk/news/world/rss.xml",
+      "TechCrunch": "https://techcrunch.com/feed/",
+      "Reddit /r/programming": "https://www.reddit.com/r/programming/.rss",
+      "NASA News": "https://www.nasa.gov/rss/dyn/breaking_news.rss",
+      "Ars Technica - Science": "https://feeds.arstechnica.com/arstechnica/science/"
+    };
+
+    const TTL = 1000 * 60 * 10;
+
+    function getCache(key) {
+      try {
+        const raw = localStorage.getItem(key);
+        if (!raw) return null;
+        const parsed = JSON.parse(raw);
+        if (Date.now() - parsed.time > TTL) return null;
+        return parsed;
+      } catch (e) {
+        return null;
       }
+    }
 
-      .header {
-        background: var(--bg);
-        border-bottom: 2px solid var(--primary);
-        padding: 16px 24px;
-        position: sticky;
-        top: 0;
-        z-index: 100;
+    function setCache(key, data) {
+      try {
+        localStorage.setItem(key, JSON.stringify({ time: Date.now(), data }));
+      } catch (e) { }
+    }
+
+    const allData = {};
+    let currentView = 'main';
+    let currentFeedName = null;
+    const historyStack = [];
+
+    function decodeHTML(htmlStr) {
+      const txt = document.createElement("textarea");
+      txt.innerHTML = htmlStr;
+      return txt.value;
+    }
+
+    function text(el) { return el?.textContent?.trim() || ""; }
+    function html(el) { return el?.innerHTML?.trim() || ""; }
+
+    function pick(p, arr) {
+      for (const s of arr) {
+        const el = p.querySelector(s);
+        if (el) return el;
       }
+      return null;
+    }
 
-      .header h1 {
-        margin: 0;
-        font-size: 20px;
-        font-weight: bold;
-        text-align: center;
-      }
+    function attr(el, a) { return el?.getAttribute?.(a) || ""; }
 
-      .status-bar {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 12px;
-        font-size: 11px;
-        margin-top: 8px;
-        color: #666;
-        flex-wrap: wrap;
-      }
+    function parse(doc) {
+      const nodes = [...doc.querySelectorAll("item"), ...doc.querySelectorAll("entry")];
+      const seen = new Set();
+      const out = [];
 
-      .status-dot {
-        width: 8px;
-        height: 8px;
-        border-radius: 50%;
-        background: #666;
-        flex-shrink: 0;
-      }
+      for (const n of nodes) {
+        const title = text(pick(n, ["title"]));
+        let link = "";
 
-      .status-dot.loading {
-        background: var(--warning);
-        animation: pulse 1s infinite;
-      }
-
-      .status-dot.loaded {
-        background: var(--success);
-      }
-
-      .status-dot.error {
-        background: var(--error);
-      }
-
-      @keyframes pulse {
-        0%, 100% { opacity: 1; }
-        50% { opacity: 0.5; }
-      }
-
-      .container {
-        max-width: 1200px;
-        margin: 0 auto;
-        padding: 24px;
-      }
-
-      .section-divider {
-        margin: 48px 0 32px 0;
-        padding: 12px 16px;
-        border: 1px solid var(--border);
-        border-left: 3px solid var(--error);
-        background: #f8f8f8;
-      }
-
-      .section-divider h2 {
-        margin: 0;
-        font-size: 14px;
-        font-weight: bold;
-        color: #666;
-      }
-
-      .section-divider p {
-        margin: 4px 0 0 0;
-        font-size: 11px;
-        color: #999;
-      }
-
-      .feed-section {
-        margin-bottom: 40px;
-        border-left: 3px solid var(--primary);
-        padding-left: 16px;
-        opacity: 0;
-        animation: fadeIn 0.3s ease forwards;
-      }
-
-      @keyframes fadeIn {
-        to { opacity: 1; }
-      }
-
-      .feed-section.error {
-        border-left-color: var(--error);
-        opacity: 0.6;
-      }
-
-      .feed-section.loading {
-        border-left-color: var(--warning);
-      }
-
-      .feed-header {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        margin-bottom: 16px;
-        flex-wrap: wrap;
-      }
-
-      .feed-title {
-        font-size: 16px;
-        font-weight: bold;
-        margin: 0;
-      }
-
-      .feed-status {
-        font-size: 10px;
-        padding: 2px 6px;
-        border: 1px solid var(--border);
-        background: #f8f8f8;
-      }
-
-      .feed-status.loading {
-        color: var(--warning);
-        border-color: var(--warning);
-      }
-
-      .feed-status.error {
-        color: var(--error);
-        border-color: var(--error);
-      }
-
-      .feed-items {
-        display: flex;
-        flex-direction: column;
-        gap: 12px;
-      }
-
-      .feed-item {
-        border-bottom: 1px solid var(--border);
-        padding-bottom: 12px;
-      }
-
-      .feed-item:last-child {
-        border-bottom: none;
-      }
-
-      .feed-item a {
-        color: var(--primary);
-        text-decoration: none;
-        display: block;
-        line-height: 1.5;
-        word-break: break-word;
-      }
-
-      .feed-item a:hover {
-        color: #0066cc;
-      }
-
-      .feed-item-meta {
-        font-size: 10px;
-        color: #999;
-        margin-top: 4px;
-      }
-
-      .error-message {
-        color: var(--error);
-        font-size: 11px;
-        margin-top: 8px;
-        font-style: italic;
-      }
-
-      .loading-skeleton {
-        height: 16px;
-        background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
-        background-size: 200% 100%;
-        animation: loading 1.5s infinite;
-        margin-bottom: 12px;
-        border-radius: 2px;
-      }
-
-      @keyframes loading {
-        0% { background-position: 200% 0; }
-        100% { background-position: -200% 0; }
-      }
-
-      .retry-btn {
-        background: var(--primary);
-        color: var(--bg);
-        border: none;
-        padding: 6px 12px;
-        font-size: 11px;
-        font-family: inherit;
-        cursor: pointer;
-        margin-top: 8px;
-        border-radius: 2px;
-      }
-
-      .retry-btn:hover {
-        opacity: 0.8;
-      }
-
-      .item-controls {
-        margin-top: 8px;
-        display: flex;
-        gap: 8px;
-        flex-wrap: wrap;
-      }
-
-      .item-controls button {
-        font-size: 11px;
-        padding: 4px 8px;
-        border: 1px solid var(--border);
-        background: #fff;
-        cursor: pointer;
-        font-family: inherit;
-        border-radius: 2px;
-      }
-
-      .item-controls button:hover {
-        opacity: 0.9;
-      }
-
-      .item-content {
-        margin-top: 8px;
-        padding: 8px;
-        border: 1px dashed var(--border);
-        background: var(--bg);
-        color: var(--primary);
-        font-size: 13px;
-        line-height: 1.6;
-        overflow-x: auto;
-      }
-
-      .item-content img {
-        max-width: 100%;
-        height: auto;
-        display: block;
-      }
-
-      @media (max-width: 768px) {
-        .container {
-          padding: 16px;
+        const linkEl = pick(n, ["link[rel='alternate']", "link[href]", "link"]);
+        if (linkEl) {
+          link = attr(linkEl, "href") || text(linkEl);
         }
-        .header {
-          padding: 12px 16px;
-        }
-        .header h1 {
-          font-size: 18px;
-        }
-      }
-    </style>
-  </head>
-  <body>
-    <div class="header">
-      <h1>News Feeds</h1>
-      <div class="status-bar">
-        <span class="status-dot loading" id="statusDot"></span>
-        <span id="statusText">Loading feeds...</span>
-        <button
-          id="themeToggle"
-          type="button"
-          style="margin-left: 8px; padding: 4px 8px; font-family: inherit; font-size: 11px; border-radius: 2px;"
-        >
-          Dark mode
-        </button>
-      </div>
-    </div>
 
-    <div class="container">
-      <div id="feedsContainer"></div>
-      <div id="dividerContainer"></div>
-      <div id="feedsFailed"></div>
-    </div>
+        if (!title || !link || seen.has(link)) continue;
+        seen.add(link);
 
-    <script>
-      // ========================================
-      // ARSS FEED URLS HERE
-      // ========================================
-      const feeds = {
-        "YTS YIFY": "https://atlas.rssly.org/feed/0/720p/all/0/en"
-      };
-      // ========================================
-
-      let loadedCount = 0;
-      const errorFeeds = new Set();
-      const totalFeeds = Object.keys(feeds).length;
-      let dividerAdded = false;
-      const feedCache = new Map();
-
-      function setCookie(name, value, days = 365) {
-        const d = new Date();
-        d.setTime(d.getTime() + days * 24 * 60 * 60 * 1000);
-        document.cookie = `${name}=${encodeURIComponent(value)};path=/;expires=${d.toUTCString()}`;
-      }
-
-      function getCookie(name) {
-        const v = document.cookie.match("(^|;)\\s*" + name + "\\s*=\\s*([^;]+)");
-        return v ? decodeURIComponent(v.pop()) : null;
-      }
-
-      function applyTheme(theme) {
-        if (theme === "dark") {
-          document.documentElement.style.setProperty("--bg", "#0b0b0b");
-          document.documentElement.style.setProperty("--primary", "#e6e6e6");
-          document.documentElement.style.setProperty("--border", "#2b2b2b");
-          document.documentElement.style.setProperty("--shadow", "rgba(0,0,0,0.6)");
-          document.getElementById("themeToggle").textContent = "Light mode";
-        } else {
-          document.documentElement.style.setProperty("--bg", "#ffffff");
-          document.documentElement.style.setProperty("--primary", "#000000");
-          document.documentElement.style.setProperty("--border", "#dddddd");
-          document.documentElement.style.setProperty("--shadow", "rgba(0,0,0,0.1)");
-          document.getElementById("themeToggle").textContent = "Dark mode";
-        }
-        setCookie("theme", theme, 365);
-      }
-
-      const savedTheme = getCookie("theme") || "light";
-      applyTheme(savedTheme);
-
-      document.getElementById("themeToggle").addEventListener("click", () => {
-        const current = getCookie("theme") || "light";
-        const next = current === "dark" ? "light" : "dark";
-        applyTheme(next);
-      });
-
-      function updateStatus() {
-        const statusDot = document.getElementById("statusDot");
-        const statusText = document.getElementById("statusText");
-        const errorCount = errorFeeds.size;
-
-        if (loadedCount + errorCount === totalFeeds) {
-          if (errorCount === totalFeeds) {
-            statusDot.className = "status-dot error";
-            statusText.textContent = "Error: Could not load feeds";
-          } else if (errorCount > 0) {
-            statusDot.className = "status-dot loaded";
-            statusText.textContent = `Loaded: ${loadedCount}/${totalFeeds} feeds (${errorCount} errors)`;
+        const content = pick(n, ["content\\:encoded", "content", "summary", "description"]);
+        let raw = "";
+        if (content) {
+          if (content.firstElementChild) {
+            raw = content.innerHTML.trim();
           } else {
-            statusDot.className = "status-dot loaded";
-            statusText.textContent = `Loaded: ${totalFeeds} feeds`;
-          }
-        } else {
-          statusText.textContent = `Loading: ${loadedCount + errorCount}/${totalFeeds}`;
-        }
-      }
-
-      function addDivider() {
-        if (dividerAdded || errorFeeds.size === 0) return;
-        const dividerContainer = document.getElementById("dividerContainer");
-        dividerContainer.innerHTML = `
-          <div class="section-divider">
-            <h2>Failed Feeds</h2>
-            <p>The following feeds could not be loaded successfully</p>
-          </div>
-        `;
-        dividerAdded = true;
-      }
-
-      function createLoadingSkeleton(container) {
-        for (let i = 0; i < 3; i++) {
-          const skeleton = document.createElement("div");
-          skeleton.className = "loading-skeleton";
-          skeleton.style.width = `${60 + Math.random() * 30}%`;
-          container.appendChild(skeleton);
-        }
-      }
-
-      function decodeHTML(html) {
-        const txt = document.createElement("textarea");
-        txt.innerHTML = html;
-        return txt.value;
-      }
-
-      function fixMojibake(s) {
-        if (!s) return s;
-        const map = {
-          "Ã¡": "á", "Ã©": "é", "Ã­": "í", "Ã³": "ó", "Ãº": "ú",
-          "Ã±": "ñ", "Ã": "Á", "Ã‰": "É", "Ã": "Í", "Ã"": "Ó",
-          "Ãš": "Ú", "â": "'", "â€œ": """, "â€\x9d": """,
-        };
-        let out = s;
-        for (const [k, v] of Object.entries(map)) {
-          out = out.split(k).join(v);
-        }
-        return out.replace(/\uFFFD/g, "");
-      }
-
-      function cleanText(text) {
-        if (!text) return "";
-        text = text.replace(/<!\[CDATA\[([\s\S]*?)\]\]>/g, "$1");
-        for (let i = 0; i < 2; i++) {
-          const decoded = decodeHTML(text);
-          if (decoded === text) break;
-          text = decoded;
-        }
-        text = fixMojibake(text);
-        text = text.replace(/<[^>]+>/g, " ");
-        return text.replace(/\s+/g, " ").trim();
-      }
-
-      function getText(element) {
-        if (!element) return "";
-        const html = element.innerHTML || "";
-        const cdataMatch = html.match(/<!\[CDATA\[([\s\S]*?)\]\]>/);
-        return cleanText(cdataMatch ? cdataMatch[1] : (element.textContent || ""));
-      }
-
-      function getRawHTML(element) {
-        if (!element) return "";
-        let html = element.innerHTML || element.textContent || "";
-        const cdataMatch = html.match(/<!\[CDATA\[([\s\S]*?)\]\]>/);
-        if (cdataMatch) html = cdataMatch[1];
-        for (let i = 0; i < 2; i++) {
-          const decoded = decodeHTML(html);
-          if (decoded === html) break;
-          html = decoded;
-        }
-        return fixMojibake(html).trim();
-      }
-
-      function findElement(parent, ...selectors) {
-        for (const sel of selectors) {
-          try {
-            const el = parent.querySelector(sel) || parent.getElementsByTagName(sel.replace(/^.*:/, ""))[0];
-            if (el) return el;
-          } catch (e) {}
-        }
-        return null;
-      }
-
-      function getLink(item) {
-        let link = item.querySelector("link[href]");
-        if (link) return link.getAttribute("href");
-        link = item.querySelector('link[rel="alternate"]');
-        if (link) return link.getAttribute("href");
-        link = item.querySelector("link");
-        if (link) {
-          const href = link.getAttribute("href");
-          if (href) return href;
-          const text = getText(link);
-          if (text && text.match(/^https?:\/\//)) return text;
-        }
-        return null;
-      }
-
-      function parseItems(doc) {
-        const items = [];
-        const elements = [
-          ...doc.querySelectorAll("item"),
-          ...doc.querySelectorAll("entry"),
-        ];
-        const uniqueElements = [...new Set(elements)];
-
-        for (const item of uniqueElements) {
-          const titleEl = findElement(item, "title");
-          const title = titleEl ? getText(titleEl) : null;
-          const link = getLink(item);
-
-          if (title && link) {
-            const dateEl = findElement(item, "pubDate", "published", "updated");
-            const pubDate = dateEl ? getText(dateEl) : null;
-            const contentEl = findElement(item, "content\\:encoded", "description", "summary");
-            const rawContent = contentEl ? getRawHTML(contentEl) : "";
-            items.push({ title, link, pubDate, rawContent });
-          }
-        }
-        return items;
-      }
-
-      function sanitizeHTML(dirty) {
-        if (!dirty) return "";
-        const allowedTags = new Set(["a", "b", "strong", "i", "em", "p", "br", "ul", "ol", "li", "img", "blockquote", "h1", "h2", "h3", "span", "div"]);
-        const allowedAttrs = new Set(["href", "src", "alt", "title"]);
-        const container = document.createElement("div");
-        container.innerHTML = dirty;
-
-        const walker = document.createTreeWalker(container, NodeFilter.SHOW_ELEMENT, null, false);
-        const nodes = [];
-        while (walker.nextNode()) nodes.push(walker.currentNode);
-
-        for (const node of nodes.reverse()) {
-          const tag = node.tagName.toLowerCase();
-          if (!allowedTags.has(tag)) {
-            node.parentNode.removeChild(node);
-            continue;
-          }
-          for (const attr of Array.from(node.attributes || [])) {
-            const name = attr.name.toLowerCase();
-            if (name.startsWith("on") || name === "style") {
-              node.removeAttribute(attr.name);
-            } else if (!allowedAttrs.has(name)) {
-              node.removeAttribute(attr.name);
-            } else if (name === "href") {
-              const safe = attr.value.trim().toLowerCase();
-              if (!safe.startsWith("http://") && !safe.startsWith("https://") && !safe.startsWith("mailto:")) {
-                node.removeAttribute(attr.name);
-              }
-            } else if (name === "src") {
-              const safe = attr.value.trim().toLowerCase();
-              if (!safe.startsWith("http://") && !safe.startsWith("https://") && !safe.startsWith("data:image/")) {
-                node.removeAttribute(attr.name);
-              }
+            raw = content.textContent.trim();
+            if (raw.includes("&lt;")) {
+              raw = decodeHTML(raw);
             }
           }
         }
-        return container.innerHTML;
+
+        let img = "";
+        const media = pick(n, ["media\\:thumbnail", "media\\:content"]);
+        if (media) img = attr(media, "url");
+
+        if (!img) {
+          const m = raw.match(/<img[^>]+src="([^"]+)"/i);
+          if (m) img = m[1];
+        }
+
+        out.push({ title, link, desc: raw, img });
       }
 
-      async function loadFeed(name, url) {
-        const section = document.createElement("section");
-        section.className = "feed-section loading";
-        section.id = `feed-${name.replace(/\s+/g, "-").toLowerCase()}`;
+      return out;
+    }
 
-        const header = document.createElement("div");
-        header.className = "feed-header";
-        header.innerHTML = `<h2 class="feed-title">${name}</h2><span class="feed-status loading">Loading...</span>`;
-        section.appendChild(header);
+    async function fetchFeed(url) {
+      const proxies = [
+        "https://api.allorigins.hexlet.app/get?url=",
+        "https://api.codetabs.com/v1/proxy?quest=",
+        "https://corsproxy.io/?",
+        "https://thingproxy.freeboard.io/fetch/"
+      ];
 
-        const itemsContainer = document.createElement("div");
-        itemsContainer.className = "feed-items";
-        createLoadingSkeleton(itemsContainer);
-        section.appendChild(itemsContainer);
+      let textData = "";
 
-        document.getElementById("feedsContainer").appendChild(section);
-
+      for (const p of proxies) {
         try {
-          const controller = new AbortController();
-          const timeoutId = setTimeout(() => controller.abort(), 20000);
+          const res = await fetch(p + encodeURIComponent(url));
+          if (!res.ok) continue;
 
-          let text = "";
-          const proxies = [
-            `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(url)}`,
-            `https://api.allorigins.win/get?url=${encodeURIComponent(url)}`,
-          ];
-
-          let lastError = null;
-          for (const proxy of proxies) {
-            try {
-              const response = await fetch(proxy, { signal: controller.signal });
-              if (!response.ok) {
-                lastError = new Error(`HTTP ${response.status}`);
-                continue;
-              }
-
-              if (proxy.includes("allorigins")) {
-                const json = await response.json();
-                text = json.contents || "";
-              } else {
-                const buffer = await response.arrayBuffer();
-                text = new TextDecoder("utf-8", { fatal: false }).decode(buffer);
-                if ((text.match(/\uFFFD/g) || []).length > 3) {
-                  text = new TextDecoder("windows-1252").decode(buffer);
-                }
-              }
-
-              if (text && text.trim().length > 100) break;
-            } catch (e) {
-              lastError = e;
-            }
+          if (p.includes("allorigins")) {
+            const j = await res.json();
+            textData = j.contents;
+          } else {
+            textData = await res.text();
           }
 
-          clearTimeout(timeoutId);
-
-          if (!text || text.trim().length < 100) {
-            throw lastError || new Error("Feed empty or inaccessible");
-          }
-
-          text = text.trim();
-          if (text.charCodeAt(0) === 0xfeff) text = text.slice(1);
-          text = text.replace(/&(?!(?:amp|lt|gt|quot|apos|#\d+|#x[0-9a-fA-F]+);)/g, "&amp;");
-
-          const parser = new DOMParser();
-          let doc = parser.parseFromString(text, "application/xml");
-          if (doc.querySelector("parsererror")) {
-            doc = parser.parseFromString(text, "text/html");
-          }
-
-          const items = parseItems(doc);
-          if (items.length === 0) throw new Error("No articles found");
-
-          displayItems(items, itemsContainer, header, section);
-          loadedCount++;
-        } catch (err) {
-          console.error(`Error loading ${name}:`, err);
-          addDivider();
-          document.getElementById("feedsFailed").appendChild(section);
-
-          section.className = "feed-section error";
-          const statusSpan = header.querySelector(".feed-status");
-          statusSpan.className = "feed-status error";
-          statusSpan.textContent = "Error";
-
-          const errorMsg = err.name === "AbortError" ? "Timeout" : (err.message || "Unknown error");
-          itemsContainer.innerHTML = `<div class="error-message">${errorMsg}</div><button class="retry-btn" onclick="retryFeed('${name}', '${url}')">Retry</button>`;
-          errorFeeds.add(name);
-        } finally {
-          updateStatus();
-        }
+          if (textData.length > 100) break;
+        } catch { }
       }
 
-      function displayItems(items, itemsContainer, header, section) {
-        itemsContainer.innerHTML = "";
-        section.className = "feed-section";
+      if (!textData) throw new Error("fail");
 
-        const displayCount = Math.min(items.length, 8);
-        for (let i = 0; i < displayCount; i++) {
-          const { title, link, pubDate, rawContent } = items[i];
-          const div = document.createElement("div");
-          div.className = "feed-item";
-
-          let dateStr = "";
-          if (pubDate) {
-            try {
-              const date = new Date(pubDate);
-              if (!isNaN(date.getTime())) {
-                dateStr = `<div class="feed-item-meta">${date.toLocaleString("en-US", { year: "numeric", month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })}</div>`;
-              }
-            } catch (e) {}
-          }
-
-          const safeTitle = title.replace(/</g, "&lt;").replace(/>/g, "&gt;");
-          const contentId = `content-${Math.random().toString(36).slice(2, 10)}`;
-          const sanitized = sanitizeHTML(rawContent);
-
-          div.innerHTML = `
-            <a href="${link}" target="_blank" rel="noopener noreferrer">${safeTitle}</a>
-            ${dateStr}
-            <div class="item-controls">
-              <button data-action="toggle-content" data-target="${contentId}">Show content</button>
-            </div>
-            <div id="${contentId}" class="item-content" style="display:none;"></div>
-          `;
-
-          itemsContainer.appendChild(div);
-
-          const btn = div.querySelector('button[data-action="toggle-content"]');
-          btn.addEventListener("click", () => {
-            const target = document.getElementById(btn.getAttribute("data-target"));
-            if (target.style.display === "none") {
-              target.innerHTML = sanitized || '<div class="error-message">No content available</div>';
-              target.style.display = "block";
-            } else {
-              target.style.display = "none";
-            }
-          });
-        }
-
-        const statusSpan = header.querySelector(".feed-status");
-        if (statusSpan) statusSpan.remove();
+      let doc = new DOMParser().parseFromString(textData, "text/xml");
+      if (doc.querySelector("parsererror")) {
+        doc = new DOMParser().parseFromString(textData, "text/html");
       }
 
-      window.retryFeed = async function (name, url) {
-        const section = document.getElementById(`feed-${name.replace(/\s+/g, "-").toLowerCase()}`);
-        if (section) section.remove();
-        errorFeeds.delete(name);
-        if (errorFeeds.size === 0 && dividerAdded) {
-          document.getElementById("dividerContainer").innerHTML = "";
-          dividerAdded = false;
+      return parse(doc);
+    }
+
+    function showMain(push = true) {
+      if (push && currentView) historyStack.push({ view: currentView, feedName: currentFeedName });
+      document.getElementById('main').style.display = 'flex';
+      document.getElementById('feed-view').style.display = 'none';
+      document.getElementById('post-view').style.display = 'none';
+      document.getElementById('back-btn').style.display = 'none';
+      document.getElementById('header-title').textContent = 'RSS Reader';
+      currentView = 'main';
+      currentFeedName = null;
+      window.scrollTo(0, 0);
+    }
+
+    function showFeed(feedName, push = true) {
+      if (push && currentView) historyStack.push({ view: currentView, feedName: currentFeedName });
+      currentFeedName = feedName;
+      document.getElementById('main').style.display = 'none';
+      document.getElementById('feed-view').style.display = 'flex';
+      document.getElementById('post-view').style.display = 'none';
+      document.getElementById('back-btn').style.display = 'flex';
+      document.getElementById('header-title').textContent = feedName + ' - All Posts';
+      currentView = 'feed';
+
+      renderFeedView(feedName);
+      window.scrollTo(0, 0);
+    }
+
+    function showPost(feedName, postIndex, push = true) {
+      if (push && currentView) historyStack.push({ view: currentView, feedName: currentFeedName });
+      currentFeedName = feedName;
+      document.getElementById('main').style.display = 'none';
+      document.getElementById('feed-view').style.display = 'none';
+      document.getElementById('post-view').style.display = 'block';
+      document.getElementById('back-btn').style.display = 'flex';
+      document.getElementById('header-title').textContent = 'Post Details';
+      currentView = 'post';
+
+      renderPostView(feedName, postIndex);
+      window.scrollTo(0, 0);
+    }
+
+    document.getElementById('back-btn').addEventListener('click', () => {
+      if (historyStack.length > 0) {
+        const state = historyStack.pop();
+        if (state.view === 'main') {
+          showMain(false);
+        } else if (state.view === 'feed') {
+          showFeed(state.feedName, false);
         }
-        updateStatus();
-        await loadFeed(name, url);
+      } else {
+        showMain(false);
+      }
+    });
+
+    function createCard(item, feedName, index) {
+      const d = document.createElement("a");
+      d.className = "card";
+      d.href = "javascript:void(0)";
+      d.onclick = (e) => {
+        e.preventDefault();
+        showPost(feedName, index);
       };
 
-      window.addEventListener("load", () => {
-        for (const [name, url] of Object.entries(feeds)) {
-          loadFeed(name, url);
-        }
+      let preClean = item.desc.replace(/<a[^>]*>\s*Comments\s*<\/a>/gi, "");
+      let clean = preClean.replace(/<[^>]+>/g, " ").replace(/\]\]>/g, "").replace(/<!\[CDATA\[/gi, "");
+      clean = decodeHTML(clean);
+      clean = clean.replace(/\[link\]/gi, "").replace(/\[comments\]/gi, "").replace(/submitted by\s+\/u\/[^\s]+/gi, "");
+      clean = clean.replace(/\s+/g, " ").trim();
+      clean = clean.slice(0, 120) + (clean.length > 120 ? "..." : "");
+
+      d.innerHTML = `
+    ${item.img ? `
+    <div class="card-image">
+      <img src="${item.img}" loading="lazy">
+    </div>
+    ` : ""}
+    <div class="card-content">
+      <h3 class="title">${item.title}</h3>
+      <div class="desc">${clean}</div>
+      <div class="card-btn">Read</div>
+    </div>
+  `;
+      return d;
+    }
+
+    function renderFeedView(feedName) {
+      const container = document.getElementById('feed-view');
+      container.innerHTML = "";
+
+      const data = allData[feedName] || [];
+
+      if (data.length === 0) {
+        container.innerHTML = "<div style='padding:20px; color: var(--muted); font-size: 1.1rem;'>No items available in this feed.</div>";
+        return;
+      }
+
+      const grid = document.createElement("div");
+      grid.className = "feed-grid";
+
+      data.forEach((item, idx) => {
+        grid.appendChild(createCard(item, feedName, idx));
       });
-    </script>
-  </body>
+
+      container.appendChild(grid);
+    }
+
+    function renderPostView(feedName, postIndex) {
+      const container = document.getElementById('post-view');
+      const data = allData[feedName];
+      if (!data || !data[postIndex]) return;
+      const post = data[postIndex];
+
+      let safeDesc = post.desc.replace(/<iframe[\s\S]*?<\/iframe>/gi, '');
+      safeDesc = safeDesc.replace(/<script[\s\S]*?<\/script>/gi, '');
+
+      container.innerHTML = `
+    <h1 class="post-title">${post.title}</h1>
+    <div class="post-meta">
+      <span class="post-feed-badge">${feedName}</span>
+    </div>
+    <div class="post-content">${safeDesc}</div>
+    <a href="${post.link}" target="_blank" rel="noopener noreferrer" class="post-link">View Original Article &rarr;</a>
+  `;
+    }
+
+    function shell(name, lastUpdatedStr) {
+      const wrap = document.createElement("div");
+      wrap.className = "feed";
+
+      const head = document.createElement("div");
+      head.className = "feed-header";
+      head.innerHTML = `
+    <a href="javascript:void(0)" class="feed-name-link" onclick="showFeed('${name}')">
+      ${name} &nbsp;-&nbsp; <span style="font-weight:normal; font-size: 0.9rem; color: var(--muted);">${lastUpdatedStr || 'Loading...'}</span>
+    </a>
+    <span class="status-badge s">Loading</span>
+  `;
+
+      const grid = document.createElement("div");
+      grid.className = "feed-grid";
+
+      for (let i = 0; i < 3; i++) {
+        const sk = document.createElement("div");
+        sk.className = "skeleton";
+        grid.appendChild(sk);
+      }
+
+      wrap.appendChild(head);
+      wrap.appendChild(grid);
+
+      return { wrap, grid, head };
+    }
+
+    function renderMainFeed(ui, data, label, feedName, lastUpdatedTime) {
+      ui.grid.innerHTML = "";
+      data.slice(0, 3).forEach((item, idx) => ui.grid.appendChild(createCard(item, feedName, idx)));
+      ui.head.querySelector(".s").textContent = label;
+
+      if (lastUpdatedTime) {
+        const timeStr = new Date(lastUpdatedTime).toLocaleString([], { dateStyle: 'short', timeStyle: 'short' });
+        const postCount = data ? data.length : 0;
+        ui.head.querySelector(".feed-name-link span").textContent = `${timeStr} (${postCount} posts)`;
+      }
+    }
+
+    async function load(name, url, ui) {
+      const key = "f_" + name;
+      const cached = getCache(key);
+
+      if (cached && cached.data && cached.data.length > 0) {
+        allData[name] = cached.data;
+        renderMainFeed(ui, cached.data, "Cached", name, cached.time);
+      }
+
+      try {
+        const data = await fetchFeed(url);
+        if (!data || data.length === 0) throw new Error("Empty feed");
+        setCache(key, data);
+        allData[name] = data;
+        renderMainFeed(ui, data, "Live", name, Date.now());
+
+        if (currentView === 'feed' && currentFeedName === name) {
+          renderFeedView(name);
+        }
+      } catch (e) {
+        if (!cached || !cached.data || cached.data.length === 0) {
+          ui.grid.innerHTML = "<div style='padding:16px; color: var(--muted);'>No items found or failed to load.</div>";
+          ui.head.querySelector(".s").textContent = "Empty";
+          ui.head.querySelector(".feed-name-link span").textContent = "Error";
+        }
+      }
+    }
+
+    const root = document.getElementById("main");
+
+    for (const [n, u] of Object.entries(feeds)) {
+      const cached = getCache("f_" + n);
+      let infoStr = 'Loading...';
+      if (cached && cached.data) {
+        const timeStr = new Date(cached.time).toLocaleString([], { dateStyle: 'short', timeStyle: 'short' });
+        infoStr = `${timeStr} (${cached.data.length} posts)`;
+      }
+
+      const ui = shell(n, infoStr);
+      root.appendChild(ui.wrap);
+      load(n, u, ui);
+    }
+
+  </script>
+
+</body>
+
 </html>
